@@ -32,8 +32,17 @@
 (function () {
   // Link format: play.html#g=<slug>&brand=<base64url JSON>
   var GAMES = ['slice', 'merge', 'sort', 'pop', 'chop', 'jam', 'stack', 'keys'];
+  // Short sample links: play.html#s=<secret gist id>/<file> -> JSON {g, brand} fetched from the gist
   function load() {
     var h = location.hash.replace(/^#/, '');
+    var s = /(?:^|&)s=([0-9a-f]{20,40})\/([A-Za-z0-9_.-]+)/.exec(h);
+    if (s) {
+      fetch('https://gist.githubusercontent.com/Adacracker/' + s[1] + '/raw/' + s[2])
+        .then(function (r) { return r.json(); })
+        .then(function (j) { location.replace('#g=' + j.g + '&brand=' + j.brand); })
+        .catch(function () { document.getElementById('msg').style.display = 'flex'; });
+      return;
+    }
     var g = (/(?:^|&)g=([a-z0-9-]+)/.exec(h) || [])[1];
     var brand = (/(?:^|&)brand=([A-Za-z0-9_-]+)/.exec(h) || [])[1];
     var frame = document.getElementById('game');
